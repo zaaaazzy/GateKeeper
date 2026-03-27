@@ -1,0 +1,142 @@
+extends layout
+
+block content
+  .list-container
+    .list-header
+      h1.page-title Dashboard
+      .actions
+        if trafficBlocked
+          button#trafficToggle.btn.btn-danger.btn-icon-only(title='Traffic ist gesperrt - Klicken zum Freigeben', style='background: #dc3545;')
+            span.btn-icon ✕
+        else
+          button#trafficToggle.btn.btn-icon-only(title='Traffic ist freigegeben - Klicken zum Sperren', style='background: #1fa667;')
+            span.btn-icon ✓
+    
+    if success
+      .success= success
+    if error
+      .error= error
+    
+    // VLAN Info Card
+    if userVlan
+      .card(style='margin-bottom: 32px; background: linear-gradient(135deg, #f7fff9 0%, #ffffff 100%); border-left: 4px solid #1fa667;')
+        .vlan-info-header(style='display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;')
+          h3(style='margin: 0; font-size: 18px; color: #153f2a;') Ihr aktuelles VLAN
+          span.badge(style='background: #1fa667; color: white; padding: 6px 12px; border-radius: 6px; font-size: 12px; font-weight: 600;')= userVlan.name
+        .vlan-info-details(style='display: grid; grid-template-columns: 1fr 1fr; gap: 16px;')
+          div
+            p(style='margin: 0; font-size: 12px; color: #6c757d; font-weight: 500;') Netzwerk
+            p(style='margin: 4px 0 0 0; font-size: 16px; color: #1fa667; font-weight: 600;')= userVlan.ip
+          div
+            p(style='margin: 0; font-size: 12px; color: #6c757d; font-weight: 500;') Raum
+            p(style='margin: 4px 0 0 0; font-size: 16px; color: #153f2a; font-weight: 600;')= userVlan.room_name || '-'
+    
+    // Whitelist hinzufügen
+    .card(style='margin-bottom: 32px;')
+      h2(style='margin: 0 0 16px 0; font-size: 20px;') Neue Whitelist hinzufügen
+      
+      form.user-edit-form(method='post', action='/auth/dashboard/add-whitelist')
+        .form-row
+          label.form-label(for='name') Name
+          input.form-input(type='text', name='name', id='name', placeholder='z.B. 20 Minuten', required)
+        
+        .form-row
+          label.form-label(for='url') URL
+          input.form-input(type='url', name='url', id='url', placeholder='https://www.example.com', required)
+        
+        .form-actions
+          button.btn.btn-icon-only(type='submit', title='Whitelist hinzufügen')
+            span.btn-icon +
+    
+    // Whitelist anzeigen
+    if userVlan
+      h2(style='margin: 32px 0 16px 0; font-size: 24px;') Meine Whitelists
+      
+      if whitelists && whitelists.length > 0
+        .table-wrapper
+          table.vlans
+            thead
+              tr
+                th Name
+                th URL
+                th VLAN
+                th Aktionen
+            tbody
+              each whitelist in whitelists
+                tr(data-whitelist-id=whitelist.id)
+                  td= whitelist.name
+                  td
+                    a(href=whitelist.url, target='_blank', style='color: #1fa667; text-decoration: none;')= whitelist.url
+                  td= whitelist.vlan_name || userVlan.name
+                  td.action-buttons
+                    a.btn.btn-small.btn-icon-only(href=`/auth/dashboard/edit-whitelist/${whitelist.id}`, title='Bearbeiten')
+                      span.btn-icon ✎
+                    button.btn.btn-small.btn-danger.btn-icon-only(type='button', data-delete-whitelist=whitelist.id, data-whitelist-name=whitelist.name, title='Löschen')
+                      span.btn-icon ✕
+      else
+        p(style='color: #6c757d; font-style: italic;') Noch keine Whitelists vorhanden. Fügen Sie Ihre erste Whitelist oben hinzu.
+    else
+      p.error Kein VLAN verfügbar. Bitte kontaktieren Sie den Administrator.
+
+block scripts
+  script.
+    // Traffic Toggle
+    const trafficToggle = document.getElementById('trafficToggle');
+    if (trafficToggle) {
+      trafficToggle.addEventListener('click', async () => {
+        try {
+          const response = await fetch('/auth/dashboard/toggle-traffic', {
+            method: 'POST'
+          });
+          
+          if (response.ok) {
+            window.location.reload();
+          } else {
+            alert('Fehler beim Umschalten des Traffic-Status');
+          }
+        } catch (err) {
+          console.error('Fehler:', err);
+          alert('Fehler beim Umschalten des Traffic-Status');
+        }
+      });
+    }
+    
+    // Delete-Funktion für Whitelist
+    document.addEventListener('DOMContentLoaded', () => {
+      const deleteButtons = document.querySelectorAll('[data-delete-whitelist]');
+      
+      deleteButtons.forEach(btn => {
+        btn.addEventListener('click', () => {
+          const whitelistId = btn.getAttribute('data-delete-whitelist');
+          const whitelistName = btn.getAttribute('data-whitelist-name');
+          
+          Modal.open({
+            title: 'Whitelist-Eintrag löschen',
+            message: `Möchten Sie den Whitelist-Eintrag "${whitelistName}" wirklich löschen? Diese Aktion kann nicht rückgängig gemacht werden.`,
+            confirmText: 'Löschen',
+            cancelText: 'Abbrechen',
+            danger: true,
+            onConfirm: async () => {
+              try {
+                const response = await fetch(`/auth/dashboard/delete-whitelist/${whitelistId}`, {
+                  method: 'POST'
+                });
+                
+                if (response.ok) {
+                  const row = document.querySelector(`tr[data-whitelist-id="${whitelistId}"]`);
+                  if (row) {
+                    row.style.opacity = '0';
+                    setTimeout(() => row.remove(), 300);
+                  }
+                } else {
+                  alert('Fehler beim Löschen des Whitelist-Eintrags');
+                }
+              } catch (err) {
+                console.error('Fehler:', err);
+                alert('Fehler beim Löschen des Whitelist-Eintrags');
+              }
+            }
+          });
+        });
+      });
+    });

@@ -1,0 +1,12 @@
+//- Wiederverwendbares Modal
+#modal.modal(style='display: none;')
+  .modal-backdrop
+  .modal-content
+    .modal-header
+      h3#modal-title Modal
+      button.modal-close(type='button', aria-label='Schließen') ×
+    .modal-body
+      p#modal-message Nachricht
+    .modal-footer
+      button#modal-cancel.btn.btn-secondary(type='button') Abbrechen
+      button#modal-confirm.btn.btn-danger(type='button') Bestätigen

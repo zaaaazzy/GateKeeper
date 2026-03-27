@@ -1,0 +1,75 @@
+extends ../layout
+
+block content
+  .list-container
+    .list-header
+      h1.page-title VLAN Verwaltung
+      .actions
+        a.btn.btn-icon-only(href='/secured/vlan/add', title='Neues VLAN')
+          span.btn-icon +
+    
+    .table-wrapper
+      table.vlans
+        thead
+          tr
+            th ID
+            th Name
+            th IP
+            th Raum
+            th Aktionen
+        tbody
+          each vlan in vlans
+            tr(data-vlan-id=vlan.id)
+              td
+                span.vlan-id= vlan.id
+              td= vlan.name
+              td= vlan.ip
+              td= vlan.room_name
+              td.action-buttons
+                a.btn.btn-small.btn-icon-only(href=`/secured/vlan/edit/${vlan.id}`, title='Bearbeiten')
+                  span.btn-icon ✎
+                button.btn.btn-small.btn-danger.btn-icon-only(type='button', data-delete-vlan=vlan.id, data-vlan-name=vlan.name, title='Löschen')
+                  span.btn-icon ✕
+
+block scripts
+  script.
+    // Delete-Funktion für VLAN
+    document.addEventListener('DOMContentLoaded', () => {
+      const deleteButtons = document.querySelectorAll('[data-delete-vlan]');
+      
+      deleteButtons.forEach(btn => {
+        btn.addEventListener('click', () => {
+          const vlanId = btn.getAttribute('data-delete-vlan');
+          const vlanName = btn.getAttribute('data-vlan-name');
+          
+          Modal.open({
+            title: 'VLAN löschen',
+            message: `Möchten Sie das VLAN "${vlanName}" (ID: ${vlanId}) wirklich löschen? Diese Aktion kann nicht rückgängig gemacht werden.`,
+            confirmText: 'Löschen',
+            cancelText: 'Abbrechen',
+            danger: true,
+            onConfirm: async () => {
+              try {
+                const response = await fetch(`/secured/vlan/delete/${vlanId}`, {
+                  method: 'POST'
+                });
+                
+                if (response.ok) {
+                  // Zeile aus Tabelle entfernen
+                  const row = document.querySelector(`tr[data-vlan-id="${vlanId}"]`);
+                  if (row) {
+                    row.style.opacity = '0';
+                    setTimeout(() => row.remove(), 300);
+                  }
+                } else {
+                  alert('Fehler beim Löschen des VLANs');
+                }
+              } catch (err) {
+                console.error('Fehler:', err);
+                alert('Fehler beim Löschen des VLANs');
+              }
+            }
+          });
+        });
+      });
+    });

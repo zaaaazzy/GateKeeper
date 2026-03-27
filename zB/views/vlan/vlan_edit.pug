@@ -1,0 +1,28 @@
+extends ../layout
+
+block content
+  .edit-form-container
+    .card.edit-card
+      h1.form-title VLAN bearbeiten
+      
+      if error
+        p.error= error
+      if success
+        p.success= success
+      
+      form.user-edit-form(method='post', action=`/secured/vlan/edit/${vlan.id}`)
+        .form-row
+          label.form-label(for='name') Name
+          input.form-input(type='text', name='name', id='name', value=vlan.name, required)
+        
+        .form-row
+          label.form-label(for='ip') IP
+          input.form-input(type='text', name='ip', id='ip', value=vlan.ip, required)
+        .form-row
+          label.form-label(for='room_name') Raum
+          input.form-input(type='text', name='room_name', id='room_name', value=vlan.room_name, required)  
+        .form-actions
+          button.btn.btn-icon-only(type='submit', title='Speichern')
+            span.btn-icon ✓
+          a.btn.btn-secondary.btn-icon-only(href='/secured/vlan', title='Abbrechen')
+            span.btn-icon ←

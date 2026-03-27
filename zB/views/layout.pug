@@ -1,0 +1,20 @@
+doctype html
+html
+  head
+    title= title || 'Gatekeeper'
+    link(rel='stylesheet', href='/stylesheets/style.css')
+    
+  body
+    header.header
+      .container
+        a.brand(href='/auth/dashboard') GateKeeper
+        include partials/menu.pug
+    main.container
+      block content
+    footer.footer
+      .container
+        p © GateKeeper
+    
+    include partials/modal.pug
+    script(src='/javascripts/modal.js')
+    block scripts

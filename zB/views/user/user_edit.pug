@@ -1,0 +1,48 @@
+extends ../layout
+
+block content
+  .edit-form-container
+    .card.edit-card
+      h1.form-title Benutzer bearbeiten
+      
+      if error
+        p.error= error
+      if success
+        p.success= success
+      
+      form.user-edit-form(method='post', action=`/secured/user/edit/${user.id}`)
+        .form-row
+          label.form-label(for='email') Email
+          input.form-input(type='email', name='email', id='email', value=user.email, required)
+        
+        .form-row
+          label.form-label(for='nom') Nachname
+          input.form-input(type='text', name='nom', id='nom', value=user.nom)
+        
+        .form-row
+          label.form-label(for='prenom') Vorname
+          input.form-input(type='text', name='prenom', id='prenom', value=user.prenom)
+        
+        .form-row
+          label.form-label(for='role_id') Rolle
+          .select-wrapper
+            select.form-select(name='role_id', id='role_id')
+              option(value=2, selected=(user.role_id == 2)) Lehrer
+              option(value=1, selected=(user.role_id == 1)) Admin
+        
+        .form-row
+          label.form-label(for='active') Aktiv
+          .select-wrapper
+            select.form-select(name='active', id='active')
+              option(value=1, selected=(user.active == 1)) Ja
+              option(value=0, selected=(user.active == 0)) Nein
+        
+        .form-row
+          label.form-label(for='password') Neues Passwort (optional)
+          input.form-input(type='password', name='password', id='password', placeholder='Leer lassen, um nicht zu ändern')
+        
+        .form-actions
+          button.btn.btn-icon-only(type='submit', title='Speichern')
+            span.btn-icon ✓
+          a.btn.btn-secondary.btn-icon-only(href='/secured/user', title='Abbrechen')
+            span.btn-icon ←

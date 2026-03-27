@@ -1,0 +1,9 @@
+extends layout
+
+block content
+  h1= title
+  if user
+    p Willkommen, #{user.email}!
+    p Rolle: #{user.role}
+  else
+    p Willkommen bei provisioning. Bitte melden Sie sich an.

@@ -1,0 +1,56 @@
+extends ../layout
+
+block content
+  .edit-form-container
+    .card.edit-card
+      h1.form-title Whitelist bearbeiten
+      
+      if error
+        p.error= error
+      if success
+        p.success= success
+      
+      form.user-edit-form(method='post', action=`/secured/whitelist/edit/${whitelist.id}`)
+        .form-row
+          label.form-label(for='user_id') Benutzer
+          .select-wrapper
+            select.form-select(name='user_id', id='user_id', required)
+              each user in users
+                option(value=user.id, selected=(whitelist.user_id == user.id))= user.email
+        
+        .form-row
+          label.form-label(for='name') Name
+          input.form-input(type='text', name='name', id='name', value=whitelist.name, required)
+        
+        .form-row
+          label.form-label(for='url') URL
+          input.form-input(type='url', name='url', id='url', value=whitelist.url, required)
+        
+        .form-row
+          label.form-label(for='vlan_id') VLAN
+          .select-wrapper
+            select.form-select(name='vlan_id', id='vlan_id', required)
+              each vlan in vlans
+                option(value=vlan.id, selected=(whitelist.vlan_id == vlan.id))= vlan.name
+        
+        .form-row
+          label.form-label(for='start') Start (optional)
+          input.form-input(type='text', name='start', id='start', value=whitelist.start || '')
+        
+        .form-row
+          label.form-label(for='end') Ende (optional)
+          input.form-input(type='text', name='end', id='end', value=whitelist.end || '')
+        
+        .form-row
+          label.form-label(for='rythm') Rhythmus (optional)
+          input.form-input(type='text', name='rythm', id='rythm', value=whitelist.rythm || '')
+        
+        .form-row
+          label.form-label(for='unit') Einheit (optional)
+          input.form-input(type='text', name='unit', id='unit', value=whitelist.unit || '')
+        
+        .form-actions
+          button.btn.btn-icon-only(type='submit', title='Speichern')
+            span.btn-icon ✓
+          a.btn.btn-secondary.btn-icon-only(href='/secured/whitelist', title='Abbrechen')
+            span.btn-icon ←

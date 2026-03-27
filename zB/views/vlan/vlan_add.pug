@@ -1,0 +1,30 @@
+extends ../layout
+
+block content
+  .edit-form-container
+    .card.edit-card
+      h1.form-title VLAN hinzufügen
+      
+      if error
+        p.error= error
+      if success
+        p.success= success
+      
+      form.user-edit-form(method='post', action='/secured/vlan/add')
+        .form-row
+          label.form-label(for='name') Name
+          input.form-input(type='text', name='name', id='name', placeholder='VLAN10' required)
+        
+        .form-row
+          label.form-label(for='ip') IP
+          input.form-input(type='text', name='ip', id='ip', placeholder='192.168.1.1' required)
+
+        .form-row
+          label.form-label(for='room_name') Raum
+          input.form-input(type='text', name='room_name', id='room_name', placeholder='Raum 101' required)
+        
+        .form-actions
+          button.btn.btn-icon-only(type='submit', title='VLAN hinzufügen')
+            span.btn-icon +
+          a.btn.btn-secondary.btn-icon-only(href='/secured/vlan', title='Zurück zur Liste')
+            span.btn-icon ←

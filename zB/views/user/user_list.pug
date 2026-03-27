@@ -1,0 +1,81 @@
+extends ../layout
+
+block content
+  .list-container
+    .list-header
+      h1.page-title Benutzerverwaltung
+      .actions
+        a.btn.btn-icon-only(href='/secured/user/register', title='Neuer Benutzer')
+          span.btn-icon +
+    
+    .table-wrapper
+      table.users
+        thead
+          tr
+            th ID
+            th Email
+            th Vorname
+            th Nachname
+            th Rolle
+            th Aktiv
+            th Aktionen
+        tbody
+          each u in users
+            tr(data-user-id=u.id)
+              td
+                span.user-id= u.id
+              td= u.email
+              td= u.prenom || '-'
+              td= u.nom || '-'
+              td
+                span.badge(class=u.role_id == 1 ? 'badge-admin' : 'badge-teacher')= u.role_id == 1 ? 'Admin' : 'Lehrer'
+              td
+                span.status(class=u.active ? 'status-active' : 'status-inactive')= u.active ? 'Aktiv' : 'Inaktiv'
+              td.action-buttons
+                a.btn.btn-small.btn-icon-only(href=`/secured/user/edit/${u.id}`, title='Bearbeiten')
+                  span.btn-icon ✎
+                button.btn.btn-small.btn-danger.btn-icon-only(type='button', data-delete-user=u.id, data-user-email=u.email, title='Löschen')
+                  span.btn-icon ✕
+
+block scripts
+  script.
+    // Delete-Funktion für Benutzer
+    document.addEventListener('DOMContentLoaded', () => {
+      const deleteButtons = document.querySelectorAll('[data-delete-user]');
+      
+      deleteButtons.forEach(btn => {
+        btn.addEventListener('click', () => {
+          const userId = btn.getAttribute('data-delete-user');
+          const userEmail = btn.getAttribute('data-user-email');
+          
+          Modal.open({
+            title: 'Benutzer löschen',
+            message: `Möchten Sie den Benutzer "${userEmail}" wirklich löschen? Diese Aktion kann nicht rückgängig gemacht werden.`,
+            confirmText: 'Löschen',
+            cancelText: 'Abbrechen',
+            danger: true,
+            onConfirm: async () => {
+              try {
+                const response = await fetch(`/secured/user/delete/${userId}`, {
+                  method: 'POST'
+                });
+                
+                if (response.ok) {
+                  // Zeile aus Tabelle entfernen
+                  const row = document.querySelector(`tr[data-user-id="${userId}"]`);
+                  if (row) {
+                    row.style.opacity = '0';
+                    setTimeout(() => row.remove(), 300);
+                  }
+                } else {
+                  alert('Fehler beim Löschen des Benutzers');
+                }
+              } catch (err) {
+                console.error('Fehler:', err);
+                alert('Fehler beim Löschen des Benutzers');
+              }
+            }
+          });
+        });
+      });
+    });

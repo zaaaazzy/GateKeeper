@@ -1,0 +1,75 @@
+extends ../layout
+
+block content
+  .list-container
+    .list-header
+      h1.page-title Whitelist Verwaltung
+      .actions
+        a.btn.btn-icon-only(href='/secured/whitelist/add', title='Neuer Whitelist-Eintrag')
+          span.btn-icon +
+    
+    .table-wrapper
+      table.vlans
+        thead
+          tr
+            th ID
+            th User
+            th Name
+            th URL
+            th VLAN
+            th Aktionen
+        tbody
+          each whitelist in whitelists
+            tr(data-whitelist-id=whitelist.id)
+              td
+                span.vlan-id= whitelist.id
+              td= whitelist.user_email || whitelist.user_id
+              td= whitelist.name
+              td= whitelist.url
+              td= whitelist.vlan_name || whitelist.vlan_id
+              td.action-buttons
+                a.btn.btn-small.btn-icon-only(href=`/secured/whitelist/edit/${whitelist.id}`, title='Bearbeiten')
+                  span.btn-icon ✎
+                button.btn.btn-small.btn-danger.btn-icon-only(type='button', data-delete-whitelist=whitelist.id, data-whitelist-name=whitelist.name, title='Löschen')
+                  span.btn-icon ✕
+
+block scripts
+  script.
+    document.addEventListener('DOMContentLoaded', () => {
+      const deleteButtons = document.querySelectorAll('[data-delete-whitelist]');
+      
+      deleteButtons.forEach(btn => {
+        btn.addEventListener('click', () => {
+          const whitelistId = btn.getAttribute('data-delete-whitelist');
+          const whitelistName = btn.getAttribute('data-whitelist-name');
+          
+          Modal.open({
+            title: 'Whitelist-Eintrag löschen',
+            message: `Möchten Sie den Whitelist-Eintrag "${whitelistName}" (ID: ${whitelistId}) wirklich löschen? Diese Aktion kann nicht rückgängig gemacht werden.`,
+            confirmText: 'Löschen',
+            cancelText: 'Abbrechen',
+            danger: true,
+            onConfirm: async () => {
+              try {
+                const response = await fetch(`/secured/whitelist/delete/${whitelistId}`, {
+                  method: 'POST'
+                });
+                
+                if (response.ok) {
+                  const row = document.querySelector(`tr[data-whitelist-id="${whitelistId}"]`);
+                  if (row) {
+                    row.style.opacity = '0';
+                    setTimeout(() => row.remove(), 300);
+                  }
+                } else {
+                  alert('Fehler beim Löschen des Whitelist-Eintrags');
+                }
+              } catch (err) {
+                console.error('Fehler:', err);
+                alert('Fehler beim Löschen des Whitelist-Eintrags');
+              }
+            }
+          });
+        });
+      });
+    });

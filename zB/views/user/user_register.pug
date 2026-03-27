@@ -1,0 +1,41 @@
+extends ../layout
+
+block content
+  .edit-form-container
+    .card.edit-card
+      h1.form-title Benutzer registrieren
+      
+      if error
+        p.error= error
+      if success
+        p.success= success
+      
+      form.user-edit-form(method='post', action='/secured/user/register')
+        .form-row
+          label.form-label(for='email') Email
+          input.form-input(type='email', name='email', id='email', required)
+        
+        .form-row
+          label.form-label(for='prenom') Vorname
+          input.form-input(type='text', name='prenom', id='prenom')
+        
+        .form-row
+          label.form-label(for='nom') Nachname
+          input.form-input(type='text', name='nom', id='nom')
+        
+        .form-row
+          label.form-label(for='password') Kennwort
+          input.form-input(type='password', name='password', id='password', required)
+        
+        .form-row
+          label.form-label(for='role') Rolle
+          .select-wrapper
+            select.form-select(name='role', id='role')
+              option(value=2 selected) Lehrer
+              option(value=1) Admin
+        
+        .form-actions
+          button.btn.btn-icon-only(type='submit', title='Benutzer anlegen')
+            span.btn-icon +
+          a.btn.btn-secondary.btn-icon-only(href='/secured/user', title='Zurück zur Liste')
+            span.btn-icon ←
