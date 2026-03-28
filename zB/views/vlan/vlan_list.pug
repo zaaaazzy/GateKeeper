@@ -33,63 +33,6 @@ block content
 
 block scripts
   script.
+    // CSRF-Token für Auto-Initialization bereitstellen
     const csrfToken = '#{csrfToken}';
-    
-    // Delete-Funktion für VLAN
-    function initDeleteButtons() {
-      // Prüfe ob Modal verfügbar ist
-      if (typeof Modal === 'undefined') {
-        console.error('Modal ist nicht verfügbar. Stelle sicher, dass modal.js geladen ist.');
-        alert('Fehler: Modal-System nicht geladen. Bitte Seite neu laden.');
-        return;
-      }
-      
-      const deleteButtons = document.querySelectorAll('[data-delete-vlan]');
-      
-      deleteButtons.forEach(btn => {
-        btn.addEventListener('click', () => {
-          const vlanId = btn.getAttribute('data-delete-vlan');
-          const vlanName = btn.getAttribute('data-vlan-name');
-          
-          Modal.open({
-            title: 'VLAN löschen',
-            message: `Möchten Sie das VLAN "${vlanName}" (ID: ${vlanId}) wirklich löschen? Diese Aktion kann nicht rückgängig gemacht werden.`,
-            confirmText: 'Löschen',
-            cancelText: 'Abbrechen',
-            danger: true,
-            onConfirm: async () => {
-              try {
-                const response = await fetch(`/secured/vlan/delete/${vlanId}`, {
-                  method: 'POST',
-                  headers: {
-                    'Content-Type': 'application/json',
-                    'X-CSRF-Token': csrfToken
-                  }
-                });
-                
-                if (response.ok) {
-                  // Zeile aus Tabelle entfernen
-                  const row = document.querySelector(`tr[data-vlan-id="${vlanId}"]`);
-                  if (row) {
-                    row.style.opacity = '0';
-                    setTimeout(() => row.remove(), 300);
-                  }
-                } else {
-                  alert('Fehler beim Löschen des VLANs');
-                }
-              } catch (err) {
-                console.error('Fehler:', err);
-                alert('Fehler beim Löschen des VLANs');
-              }
-            }
-          });
-        });
-      });
-    }
-    
-    // Initialisiere entweder sofort oder nach DOMContentLoaded
-    if (document.readyState === 'loading') {
-      document.addEventListener('DOMContentLoaded', initDeleteButtons);
-    } else {
-      initDeleteButtons();
-    }
+    // DeleteHandler initialisiert automatisch alle [data-delete-vlan] Buttons

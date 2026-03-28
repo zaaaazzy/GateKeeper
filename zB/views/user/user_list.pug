@@ -39,63 +39,6 @@ block content
 
 block scripts
   script.
+    // CSRF-Token für Auto-Initialization bereitstellen
     const csrfToken = '#{csrfToken}';
-    
-    // Delete-Funktion für Benutzer
-    function initDeleteButtons() {
-      // Prüfe ob Modal verfügbar ist
-      if (typeof Modal === 'undefined') {
-        console.error('Modal ist nicht verfügbar. Stelle sicher, dass modal.js geladen ist.');
-        alert('Fehler: Modal-System nicht geladen. Bitte Seite neu laden.');
-        return;
-      }
-      
-      const deleteButtons = document.querySelectorAll('[data-delete-user]');
-      
-      deleteButtons.forEach(btn => {
-        btn.addEventListener('click', () => {
-          const userId = btn.getAttribute('data-delete-user');
-          const userEmail = btn.getAttribute('data-user-email');
-          
-          Modal.open({
-            title: 'Benutzer löschen',
-            message: `Möchten Sie den Benutzer "${userEmail}" wirklich löschen? Diese Aktion kann nicht rückgängig gemacht werden.`,
-            confirmText: 'Löschen',
-            cancelText: 'Abbrechen',
-            danger: true,
-            onConfirm: async () => {
-              try {
-                const response = await fetch(`/secured/user/delete/${userId}`, {
-                  method: 'POST',
-                  headers: {
-                    'Content-Type': 'application/json',
-                    'X-CSRF-Token': csrfToken
-                  }
-                });
-                
-                if (response.ok) {
-                  // Zeile aus Tabelle entfernen
-                  const row = document.querySelector(`tr[data-user-id="${userId}"]`);
-                  if (row) {
-                    row.style.opacity = '0';
-                    setTimeout(() => row.remove(), 300);
-                  }
-                } else {
-                  alert('Fehler beim Löschen des Benutzers');
-                }
-              } catch (err) {
-                console.error('Fehler:', err);
-                alert('Fehler beim Löschen des Benutzers');
-              }
-            }
-          });
-        });
-      });
-    }
-    
-    // Initialisiere entweder sofort oder nach DOMContentLoaded
-    if (document.readyState === 'loading') {
-      document.addEventListener('DOMContentLoaded', initDeleteButtons);
-    } else {
-      initDeleteButtons();
-    }
+    // DeleteHandler initialisiert automatisch alle [data-delete-user] Buttons

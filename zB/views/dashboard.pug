@@ -61,7 +61,7 @@ block content
                   td.action-buttons
                     a.btn.btn-small.btn-icon-only(href=`/secured/whitelist/edit/${whitelist.id}`, title='Bearbeiten')
                       span.btn-icon ✎
-                    button.btn.btn-small.btn-danger.btn-icon-only(type='button', data-delete-whitelist=whitelist.id, data-whitelist-name=whitelist.name, title='Löschen')
+                    button.btn.btn-small.btn-danger.btn-icon-only(type='button', data-delete-dashboard-whitelist=whitelist.id, data-whitelist-name=whitelist.name, title='Löschen')
                       span.btn-icon ✕
       else
         p(style='color: #6c757d; font-style: italic;') Noch keine Whitelists vorhanden. Fügen Sie Ihre erste Whitelist oben hinzu.
@@ -70,6 +70,7 @@ block content
 
 block scripts
   script.
+    // CSRF-Token für Auto-Initialization bereitstellen
     const csrfToken = '#{csrfToken}';
     
     // Traffic Toggle
@@ -101,59 +102,4 @@ block scripts
       });
     }
     
-    // Delete-Funktion für Whitelist
-    function initDeleteButtons() {
-      const deleteButtons = document.querySelectorAll('[data-delete-whitelist]');
-      
-      deleteButtons.forEach(btn => {
-        btn.addEventListener('click', () => {
-          const whitelistId = btn.getAttribute('data-delete-whitelist');
-          const whitelistName = btn.getAttribute('data-whitelist-name');
-          
-          if (typeof Modal === 'undefined') {
-            console.error('Modal ist nicht verfügbar');
-            alert('Fehler: Modal-System nicht geladen');
-            return;
-          }
-          
-          Modal.open({
-            title: 'Whitelist-Eintrag löschen',
-            message: `Möchten Sie den Whitelist-Eintrag "${whitelistName}" wirklich löschen? Diese Aktion kann nicht rückgängig gemacht werden.`,
-            confirmText: 'Löschen',
-            cancelText: 'Abbrechen',
-            danger: true,
-            onConfirm: async () => {
-              try {
-                const response = await fetch(`/auth/dashboard/delete-whitelist/${whitelistId}`, {
-                  method: 'POST',
-                  headers: {
-                    'Content-Type': 'application/json',
-                    'X-CSRF-Token': csrfToken
-                  }
-                });
-                
-                if (response.ok) {
-                  const row = document.querySelector(`tr[data-whitelist-id="${whitelistId}"]`);
-                  if (row) {
-                    row.style.opacity = '0';
-                    setTimeout(() => row.remove(), 300);
-                  }
-                } else {
-                  alert('Fehler beim Löschen des Whitelist-Eintrags');
-                }
-              } catch (err) {
-                console.error('Fehler:', err);
-                alert('Fehler beim Löschen des Whitelist-Eintrags');
-              }
-            }
-          });
-        });
-      });
-    }
-    
-    // Initialisiere nach DOM-Load oder sofort wenn bereits geladen
-    if (document.readyState === 'loading') {
-      document.addEventListener('DOMContentLoaded', initDeleteButtons);
-    } else {
-      initDeleteButtons();
-    }
+    // DeleteHandler initialisiert automatisch alle [data-delete-dashboard-whitelist] Buttons
