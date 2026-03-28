@@ -9,7 +9,7 @@ block content
           span.btn-icon +
     
     .table-wrapper
-      table.vlans
+      table.vlan-list
         thead
           tr
             th ID
@@ -33,6 +33,8 @@ block content
 
 block scripts
   script.
+    const csrfToken = '#{csrfToken}';
+    
     // Delete-Funktion für VLAN
     document.addEventListener('DOMContentLoaded', () => {
       const deleteButtons = document.querySelectorAll('[data-delete-vlan]');
@@ -51,7 +53,10 @@ block scripts
             onConfirm: async () => {
               try {
                 const response = await fetch(`/secured/vlan/delete/${vlanId}`, {
-                  method: 'POST'
+                  method: 'POST',
+                  headers: {
+                    'CSRF-Token': csrfToken
+                  }
                 });
                 
                 if (response.ok) {

@@ -4,13 +4,12 @@ block content
   .list-container
     .list-header
       h1.page-title Dashboard
-      .actions
-        if trafficBlocked
-          button#trafficToggle.btn.btn-danger.btn-icon-only(title='Traffic ist gesperrt - Klicken zum Freigeben', style='background: #dc3545;')
-            span.btn-icon ✕
-        else
-          button#trafficToggle.btn.btn-icon-only(title='Traffic ist freigegeben - Klicken zum Sperren', style='background: #1fa667;')
-            span.btn-icon ✓
+      .traffic-control
+        span.traffic-label Traffic ein/aus
+        .traffic-toggle-wrapper
+          input#trafficToggle(type='checkbox', checked=!trafficBlocked)
+          label.toggle-switch(for='trafficToggle')
+            span.toggle-slider
     
     if success
       .success= success
@@ -19,38 +18,25 @@ block content
     
     // VLAN Info Card
     if userVlan
-      .card(style='margin-bottom: 32px; background: linear-gradient(135deg, #f7fff9 0%, #ffffff 100%); border-left: 4px solid #1fa667;')
-        .vlan-info-header(style='display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;')
-          h3(style='margin: 0; font-size: 18px; color: #153f2a;') Ihr aktuelles VLAN
-          span.badge(style='background: #1fa667; color: white; padding: 6px 12px; border-radius: 6px; font-size: 12px; font-weight: 600;')= userVlan.name
-        .vlan-info-details(style='display: grid; grid-template-columns: 1fr 1fr; gap: 16px;')
-          div
-            p(style='margin: 0; font-size: 12px; color: #6c757d; font-weight: 500;') Netzwerk
-            p(style='margin: 4px 0 0 0; font-size: 16px; color: #1fa667; font-weight: 600;')= userVlan.ip
-          div
-            p(style='margin: 0; font-size: 12px; color: #6c757d; font-weight: 500;') Raum
-            p(style='margin: 4px 0 0 0; font-size: 16px; color: #153f2a; font-weight: 600;')= userVlan.room_name || '-'
-    
-    // Whitelist hinzufügen
-    .card(style='margin-bottom: 32px;')
-      h2(style='margin: 0 0 16px 0; font-size: 20px;') Neue Whitelist hinzufügen
-      
-      form.user-edit-form(method='post', action='/auth/dashboard/add-whitelist')
-        .form-row
-          label.form-label(for='name') Name
-          input.form-input(type='text', name='name', id='name', placeholder='z.B. 20 Minuten', required)
-        
-        .form-row
-          label.form-label(for='url') URL
-          input.form-input(type='url', name='url', id='url', placeholder='https://www.example.com', required)
-        
-        .form-actions
-          button.btn.btn-icon-only(type='submit', title='Whitelist hinzufügen')
-            span.btn-icon +
+      .vlan-card
+        .vlan-card-header
+          h3 Ihr aktuelles VLAN
+          span.vlan-badge= userVlan.name
+        .vlan-card-details
+          .vlan-card-item
+            p.vlan-label Netzwerk
+            p.vlan-value= userVlan.ip
+          .vlan-card-item
+            p.vlan-label Raum
+            p.vlan-value= userVlan.room_name || '-'
     
     // Whitelist anzeigen
     if userVlan
-      h2(style='margin: 32px 0 16px 0; font-size: 24px;') Meine Whitelists
+      .list-header.whitelist-header
+        h2.page-title Meine Whitelists
+        .actions
+          a.btn.btn-icon-only(href='/secured/whitelist/add', title='Neue Whitelist hinzufügen')
+            span.btn-icon +
       
       if whitelists && whitelists.length > 0
         .table-wrapper
@@ -59,6 +45,8 @@ block content
               tr
                 th Name
                 th URL
+                th Start
+                th Ende
                 th VLAN
                 th Aktionen
             tbody
@@ -67,9 +55,11 @@ block content
                   td= whitelist.name
                   td
                     a(href=whitelist.url, target='_blank', style='color: #1fa667; text-decoration: none;')= whitelist.url
+                  td= whitelist.start_display || '-'
+                  td= whitelist.end_display || '-'
                   td= whitelist.vlan_name || userVlan.name
                   td.action-buttons
-                    a.btn.btn-small.btn-icon-only(href=`/auth/dashboard/edit-whitelist/${whitelist.id}`, title='Bearbeiten')
+                    a.btn.btn-small.btn-icon-only(href=`/secured/whitelist/edit/${whitelist.id}`, title='Bearbeiten')
                       span.btn-icon ✎
                     button.btn.btn-small.btn-danger.btn-icon-only(type='button', data-delete-whitelist=whitelist.id, data-whitelist-name=whitelist.name, title='Löschen')
                       span.btn-icon ✕
@@ -80,22 +70,31 @@ block content
 
 block scripts
   script.
+    const csrfToken = '#{csrfToken}';
+    
     // Traffic Toggle
     const trafficToggle = document.getElementById('trafficToggle');
     if (trafficToggle) {
-      trafficToggle.addEventListener('click', async () => {
+      trafficToggle.addEventListener('change', async (e) => {
         try {
           const response = await fetch('/auth/dashboard/toggle-traffic', {
-            method: 'POST'
+            method: 'POST',
+            headers: {
+              'CSRF-Token': csrfToken
+            }
           });
           
           if (response.ok) {
             window.location.reload();
           } else {
+            // Revert checkbox state on error
+            e.target.checked = !e.target.checked;
             alert('Fehler beim Umschalten des Traffic-Status');
           }
         } catch (err) {
           console.error('Fehler:', err);
+          // Revert checkbox state on error
+          e.target.checked = !e.target.checked;
           alert('Fehler beim Umschalten des Traffic-Status');
         }
       });
@@ -119,7 +118,10 @@ block scripts
             onConfirm: async () => {
               try {
                 const response = await fetch(`/auth/dashboard/delete-whitelist/${whitelistId}`, {
-                  method: 'POST'
+                  method: 'POST',
+                  headers: {
+                    'CSRF-Token': csrfToken
+                  }
                 });
                 
                 if (response.ok) {

@@ -27,10 +27,23 @@ main.container {
 .brand {
   color: #ffffff;
   font-weight: 700;
-  text-transform: lowercase;
   text-decoration: none;
   font-size: 20px;
-  margin-left: 16px;
+  margin-left: 26px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.brand-logo {
+  height: 40px;
+  width: auto;
+  display: block;
+  margin-left: 20px;
+}
+
+.brand-text {
+  display: inline-block;
 }
 .header nav {
   margin-left: auto;
@@ -47,7 +60,7 @@ main.container {
 }
 .user-badge .user-email { font-size: 12px; color: rgba(255,255,255,0.95); opacity: 0.95; }
 
-.container { max-width: 900px; margin: 28px auto; padding: 0 16px; }
+.container { max-width: 1400px; margin: 28px auto; padding: 0 16px; }
 
 .btn {
   background: #1fa667;
@@ -211,27 +224,286 @@ main.container {
   .page-title { font-size: 24px; }
 }
 
-.users { width: 100%; border-collapse: collapse; background: white; border-radius: 8px; overflow: hidden; box-shadow: 0 2px 8px rgba(0,0,0,0.05); }
+.users { 
+  width: 100%; 
+  border-collapse: collapse; 
+  background: white; 
+  border-radius: 8px; 
+  overflow: hidden; 
+  box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+  table-layout: fixed;
+}
 .users thead { background: #f7fff9; }
-.users th { text-align: left; padding: 12px 16px; border-bottom: 2px solid #e6f2ea; font-weight: 600; color: #153f2a; font-size: 13px; text-transform: uppercase; letter-spacing: 0.5px; }
-.users td { padding: 12px 16px; border-bottom: 1px solid #e6f2ea; }
+.users th { 
+  text-align: left; 
+  padding: 12px 16px; 
+  border-bottom: 2px solid #e6f2ea; 
+  font-weight: 600; 
+  color: #153f2a; 
+  font-size: 13px; 
+  text-transform: uppercase; 
+  letter-spacing: 0.5px;
+  white-space: nowrap;
+}
+.users td { 
+  padding: 12px 16px; 
+  border-bottom: 1px solid #e6f2ea;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
 .users tbody tr { transition: background-color 0.2s, opacity 0.3s; }
 .users tbody tr:hover { background: #f7fff9; }
 .users tbody tr:last-child td { border-bottom: none; }
 
+/* User-Tabelle spezifische Spaltenbreiten */
+.users th:nth-child(1),
+.users td:nth-child(1) { width: 8%; } /* ID */
+
+.users th:nth-child(2),
+.users td:nth-child(2) { width: 25%; } /* Email */
+
+.users th:nth-child(3),
+.users td:nth-child(3) { width: 15%; } /* Vorname */
+
+.users th:nth-child(4),
+.users td:nth-child(4) { width: 15%; } /* Nachname */
+
+.users th:nth-child(5),
+.users td:nth-child(5) { width: 12%; } /* Rolle */
+
+.users th:nth-child(6),
+.users td:nth-child(6) { width: 12%; } /* Aktiv */
+
+.users th:nth-child(7),
+.users td:nth-child(7) { width: 13%; } /* Aktionen */
+
+.users .action-buttons {
+  display: flex;
+  gap: 8px;
+  flex-wrap: nowrap;
+  justify-content: flex-start;
+  min-width: 80px;
+}
+
 /* VLAN Tabelle - identisches Styling wie Users */
-.vlans { width: 100%; border-collapse: collapse; background: white; border-radius: 8px; overflow: hidden; box-shadow: 0 2px 8px rgba(0,0,0,0.05); }
+.vlans { 
+  width: 100%; 
+  border-collapse: collapse; 
+  background: white; 
+  border-radius: 8px; 
+  overflow: hidden; 
+  box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+  table-layout: fixed;
+}
 .vlans thead { background: #f7fff9; }
-.vlans th { text-align: left; padding: 12px 16px; border-bottom: 2px solid #e6f2ea; font-weight: 600; color: #153f2a; font-size: 13px; text-transform: uppercase; letter-spacing: 0.5px; }
-.vlans td { padding: 12px 16px; border-bottom: 1px solid #e6f2ea; }
+.vlans th { 
+  text-align: left; 
+  padding: 12px 16px; 
+  border-bottom: 2px solid #e6f2ea; 
+  font-weight: 600; 
+  color: #153f2a; 
+  font-size: 13px; 
+  text-transform: uppercase; 
+  letter-spacing: 0.5px;
+  white-space: nowrap;
+}
+.vlans td { 
+  padding: 12px 16px; 
+  border-bottom: 1px solid #e6f2ea;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
 .vlans tbody tr { transition: background-color 0.2s, opacity 0.3s; }
 .vlans tbody tr:hover { background: #f7fff9; }
 .vlans tbody tr:last-child td { border-bottom: none; }
+
+/* Whitelist Tabelle (Dashboard) spezifische Spaltenbreiten */
+.vlans th:nth-child(1),
+.vlans td:nth-child(1) { width: 14%; } /* Name */
+
+.vlans th:nth-child(2),
+.vlans td:nth-child(2) { 
+  width: 26%; 
+  max-width: 400px;
+} /* URL */
+
+.vlans td:nth-child(2) a {
+  display: block;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.vlans th:nth-child(3),
+.vlans td:nth-child(3) { width: 14%; white-space: nowrap; font-size: 12px; } /* Start */
+
+.vlans th:nth-child(4),
+.vlans td:nth-child(4) { width: 14%; white-space: nowrap; font-size: 12px; } /* Ende */
+
+.vlans th:nth-child(5),
+.vlans td:nth-child(5) { width: 10%; } /* VLAN */
+
+.vlans th:nth-child(6),
+.vlans td:nth-child(6) { width: 22%; } /* Aktionen */
+
+.vlans .action-buttons {
+  display: flex;
+  gap: 8px;
+  flex-wrap: nowrap;
+  justify-content: flex-start;
+  min-width: 80px;
+}
+
+/* VLAN-Liste Tabelle */
+.vlan-list { 
+  width: 100%; 
+  border-collapse: collapse; 
+  background: white; 
+  border-radius: 8px; 
+  overflow: hidden; 
+  box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+  table-layout: fixed;
+}
+.vlan-list thead { background: #f7fff9; }
+.vlan-list th { 
+  text-align: left; 
+  padding: 12px 16px; 
+  border-bottom: 2px solid #e6f2ea; 
+  font-weight: 600; 
+  color: #153f2a; 
+  font-size: 13px; 
+  text-transform: uppercase; 
+  letter-spacing: 0.5px;
+  white-space: nowrap;
+}
+.vlan-list td { 
+  padding: 12px 16px; 
+  border-bottom: 1px solid #e6f2ea;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.vlan-list tbody tr { transition: background-color 0.2s, opacity 0.3s; }
+.vlan-list tbody tr:hover { background: #f7fff9; }
+.vlan-list tbody tr:last-child td { border-bottom: none; }
+
+/* VLAN-Liste spezifische Spaltenbreiten */
+.vlan-list th:nth-child(1),
+.vlan-list td:nth-child(1) { width: 10%; } /* ID */
+
+.vlan-list th:nth-child(2),
+.vlan-list td:nth-child(2) { width: 25%; } /* Name */
+
+.vlan-list th:nth-child(3),
+.vlan-list td:nth-child(3) { width: 30%; } /* IP */
+
+.vlan-list th:nth-child(4),
+.vlan-list td:nth-child(4) { width: 20%; } /* Raum */
+
+.vlan-list th:nth-child(5),
+.vlan-list td:nth-child(5) { width: 15%; } /* Aktionen */
+
+.vlan-list .action-buttons {
+  display: flex;
+  gap: 8px;
+  flex-wrap: nowrap;
+  justify-content: flex-start;
+  min-width: 80px;
+}
+
+/* Whitelist Admin Tabelle */
+.whitelist-admin { 
+  width: 100%; 
+  border-collapse: collapse; 
+  background: white; 
+  border-radius: 8px; 
+  overflow: hidden; 
+  box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+  table-layout: fixed;
+}
+.whitelist-admin thead { background: #f7fff9; }
+.whitelist-admin th { 
+  text-align: left; 
+  padding: 12px 16px; 
+  border-bottom: 2px solid #e6f2ea; 
+  font-weight: 600; 
+  color: #153f2a; 
+  font-size: 13px; 
+  text-transform: uppercase; 
+  letter-spacing: 0.5px;
+  white-space: nowrap;
+}
+.whitelist-admin td { 
+  padding: 12px 16px; 
+  border-bottom: 1px solid #e6f2ea;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.whitelist-admin tbody tr { transition: background-color 0.2s, opacity 0.3s; }
+.whitelist-admin tbody tr:hover { background: #f7fff9; }
+.whitelist-admin tbody tr:last-child td { border-bottom: none; }
+
+/* Whitelist Admin Tabelle spezifische Spaltenbreiten */
+.whitelist-admin th:nth-child(1),
+.whitelist-admin td:nth-child(1) { width: 6%; } /* ID */
+
+.whitelist-admin th:nth-child(2),
+.whitelist-admin td:nth-child(2) { width: 17%; } /* User */
+
+.whitelist-admin th:nth-child(3),
+.whitelist-admin td:nth-child(3) { width: 15%; } /* Name */
+
+.whitelist-admin th:nth-child(4),
+.whitelist-admin td:nth-child(4) { width: 28%; max-width: 350px; } /* URL */
+
+.whitelist-admin td:nth-child(4) {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.whitelist-admin th:nth-child(5),
+.whitelist-admin td:nth-child(5) { width: 14%; white-space: nowrap; font-size: 12px; } /* Ende */
+
+.whitelist-admin th:nth-child(6),
+.whitelist-admin td:nth-child(6) { width: 6%; } /* VLAN */
+
+.whitelist-admin th:nth-child(7),
+.whitelist-admin td:nth-child(7) { width: 14%; } /* Aktionen */
+
+.whitelist-admin .action-buttons {
+  display: flex;
+  gap: 6px;
+  flex-wrap: nowrap;
+  justify-content: flex-start;
+}
 
 .table-wrapper { overflow-x: auto; margin-top: 20px; }
 .list-container { padding: 0 16px; }
 .list-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; flex-wrap: wrap; gap: 16px; }
 .page-title { margin: 0; font-size: 28px; color: #153f2a; font-weight: 600; }
+
+/* Spezielle Ausrichtung für Whitelist-Header */
+.whitelist-header {
+  margin: 32px 0 16px 0;
+}
+
+.whitelist-header .page-title {
+  font-size: 24px;
+  line-height: 36px;
+}
+
+.whitelist-header .actions {
+  display: flex;
+  align-items: center;
+}
+
+.whitelist-header .btn-icon-only {
+  width: 36px;
+  height: 36px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
 
 .user-id { color: #6c757d; font-size: 13px; }
 .vlan-id { color: #6c757d; font-size: 13px; }
@@ -265,17 +537,83 @@ main.container {
   font-weight: 600;
 }
 
+/* Traffic Toggle Switch */
 #trafficToggle {
-  transition: all 0.3s ease;
-  font-size: 16px;
-  min-width: 42px;
-  height: 42px;
+  display: none;
+}
+
+.toggle-switch {
+  position: relative;
+  display: inline-block;
+  width: 60px;
+  height: 34px;
+  cursor: pointer;
+}
+
+.toggle-slider {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: #dc3545;
+  transition: 0.3s;
+  border-radius: 34px;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
 }
 
-#trafficToggle:hover {
-  transform: scale(1.05);
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+.toggle-slider:before {
+  position: absolute;
+  content: "";
+  height: 26px;
+  width: 26px;
+  left: 4px;
+  bottom: 4px;
+  background-color: white;
+  transition: 0.3s;
+  border-radius: 50%;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+#trafficToggle:checked + .toggle-switch .toggle-slider {
+  background-color: #1fa667;
+}
+
+#trafficToggle:checked + .toggle-switch .toggle-slider:before {
+  transform: translateX(26px);
+}
+
+.toggle-switch:hover .toggle-slider {
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25);
+}
+
+.traffic-control {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 16px;
+  padding: 12px 20px;
+  border: 2px solid #1fa667;
+  border-radius: 8px;
+  background: #ffffff;
+  box-shadow: 0 2px 8px rgba(31, 166, 103, 0.1);
+  min-width: 200px;
+}
+
+.traffic-label {
+  font-size: 13px;
+  font-weight: 600;
+  color: #153f2a;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin: 0;
+  white-space: nowrap;
+}
+
+.traffic-toggle-wrapper {
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 footer.footer { 
@@ -391,4 +729,68 @@ footer.footer {
   border-top: 1px solid #e6f2ea;
   background: #f7fff9;
   border-radius: 0 0 12px 12px;
+}
+
+/* VLAN Info Card */
+.vlan-card {
+  margin-bottom: 32px;
+  background: linear-gradient(135deg, #f7fff9 0%, #ffffff 100%);
+  border-left: 4px solid #1fa667;
+  padding: 20px 24px;
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+}
+
+.vlan-card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 16px;
+}
+
+.vlan-card-header h3 {
+  margin: 0;
+  font-size: 18px;
+  color: #153f2a;
+  font-weight: 600;
+}
+
+.vlan-badge {
+  background: #1fa667;
+  color: white;
+  padding: 0 12px;
+  border-radius: 6px;
+  font-size: 12px;
+  font-weight: 600;
+  white-space: nowrap;
+  height: 36px;
+  display: flex;
+  align-items: center;
+  line-height: 1;
+}
+
+.vlan-card-details {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 20px;
+}
+
+.vlan-card-item {
+  margin: 0;
+}
+
+.vlan-label {
+  margin: 0;
+  font-size: 12px;
+  color: #6c757d;
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.vlan-value {
+  margin: 4px 0 0 0;
+  font-size: 16px;
+  color: #1fa667;
+  font-weight: 600;
 }

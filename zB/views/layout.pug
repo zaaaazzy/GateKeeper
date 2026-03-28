@@ -1,13 +1,15 @@
 doctype html
 html
   head
-    title= title || 'Gatekeeper'
+    title= 'Gatekeeper'
     link(rel='stylesheet', href='/stylesheets/style.css')
     
   body
     header.header
       .container
-        a.brand(href='/auth/dashboard') GateKeeper
+        a.brand(href='/auth/dashboard')
+          img.brand-logo(src='/images/logo.png', alt='GateKeeper Logo')
+          span.brand-text GateKeeper
         include partials/menu.pug
     main.container
       block content

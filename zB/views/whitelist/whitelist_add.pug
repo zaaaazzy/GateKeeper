@@ -11,13 +11,15 @@ block content
         p.success= success
       
       form.user-edit-form(method='post', action='/secured/whitelist/add')
-        .form-row
-          label.form-label(for='user_id') Benutzer
-          .select-wrapper
-            select.form-select(name='user_id', id='user_id', required)
-              option(value='', selected) Benutzer auswählen
-              each user in users
-                option(value=user.id)= user.email
+        input(type='hidden', name='_csrf', value=csrfToken)
+        if user && user.role === 1
+          .form-row
+            label.form-label(for='user_id') Benutzer
+            .select-wrapper
+              select.form-select(name='user_id', id='user_id', required)
+                option(value='', selected) Benutzer auswählen
+                each u in users
+                  option(value=u.id)= u.email
         
         .form-row
           label.form-label(for='name') Name
@@ -27,32 +29,47 @@ block content
           label.form-label(for='url') URL
           input.form-input(type='url', name='url', id='url', required)
         
-        .form-row
-          label.form-label(for='vlan_id') VLAN
-          .select-wrapper
-            select.form-select(name='vlan_id', id='vlan_id', required)
-              option(value='', selected) VLAN auswählen
-              each vlan in vlans
-                option(value=vlan.id)= vlan.name
+        if user && user.role === 1
+          .form-row
+            label.form-label(for='vlan_id') VLAN
+            .select-wrapper
+              select.form-select(name='vlan_id', id='vlan_id', required)
+                option(value='', selected) VLAN auswählen
+                each vlan in vlans
+                  option(value=vlan.id)= vlan.name
         
         .form-row
           label.form-label(for='start') Start (optional)
-          input.form-input(type='text', name='start', id='start')
+          input.form-input(type='datetime-local', name='start', id='start')
         
         .form-row
           label.form-label(for='end') Ende (optional)
-          input.form-input(type='text', name='end', id='end')
+          input.form-input(type='datetime-local', name='end', id='end')
         
         .form-row
           label.form-label(for='rythm') Rhythmus (optional)
-          input.form-input(type='text', name='rythm', id='rythm')
+          .select-wrapper
+            select.form-select(name='rythm', id='rythm')
+                option(value='', selected) -- Bitte wählen --
+                option(value='täglich') Täglich
+                option(value='wöchentlich') Wöchentlich
         
         .form-row
           label.form-label(for='unit') Einheit (optional)
-          input.form-input(type='text', name='unit', id='unit')
+          .select-wrapper
+            select.form-select(name='unit', id='unit')
+                option(value='', selected) -- Bitte wählen --
+                option(value='1') 1
+                option(value='2') 2
+                option(value='3') 3
+                option(value='4') 4
         
         .form-actions
           button.btn.btn-icon-only(type='submit', title='Whitelist-Eintrag hinzufügen')
             span.btn-icon +
-          a.btn.btn-secondary.btn-icon-only(href='/secured/whitelist', title='Zurück zur Liste')
-            span.btn-icon ←
+          if user && user.role === 1
+            a.btn.btn-secondary.btn-icon-only(href='/secured/whitelist', title='Zurück zur Liste')
+              span.btn-icon ←
+          else
+            a.btn.btn-secondary.btn-icon-only(href='/auth/dashboard', title='Zurück zum Dashboard')
+              span.btn-icon ←

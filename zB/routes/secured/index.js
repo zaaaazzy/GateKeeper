@@ -9,6 +9,7 @@ router.use(ensureAuth);
 router.use(`/user`, require('./user'));
 router.use(`/vlan`, require('./vlan'));
 router.use(`/whitelist`, require('./whitelist'));
+router.use(`/nftables`, require('./nftables'));
 
 
 // Health Check

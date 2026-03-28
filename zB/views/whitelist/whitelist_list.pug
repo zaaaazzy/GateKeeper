@@ -8,24 +8,29 @@ block content
         a.btn.btn-icon-only(href='/secured/whitelist/add', title='Neuer Whitelist-Eintrag')
           span.btn-icon +
     
+    if success
+      .success= success
+    if error
+      .error= error
+    
     .table-wrapper
       table.vlans
         thead
           tr
-            th ID
-            th User
             th Name
             th URL
+            th Start
+            th Ende
             th VLAN
             th Aktionen
         tbody
           each whitelist in whitelists
             tr(data-whitelist-id=whitelist.id)
-              td
-                span.vlan-id= whitelist.id
-              td= whitelist.user_email || whitelist.user_id
               td= whitelist.name
-              td= whitelist.url
+              td
+                a(href=whitelist.url, target='_blank', style='color: #1fa667; text-decoration: none;')= whitelist.url
+              td= whitelist.start_display || '-'
+              td= whitelist.end_display || '-'
               td= whitelist.vlan_name || whitelist.vlan_id
               td.action-buttons
                 a.btn.btn-small.btn-icon-only(href=`/secured/whitelist/edit/${whitelist.id}`, title='Bearbeiten')
@@ -35,6 +40,8 @@ block content
 
 block scripts
   script.
+    const csrfToken = '#{csrfToken}';
+    
     document.addEventListener('DOMContentLoaded', () => {
       const deleteButtons = document.querySelectorAll('[data-delete-whitelist]');
       
@@ -45,14 +52,17 @@ block scripts
           
           Modal.open({
             title: 'Whitelist-Eintrag löschen',
-            message: `Möchten Sie den Whitelist-Eintrag "${whitelistName}" (ID: ${whitelistId}) wirklich löschen? Diese Aktion kann nicht rückgängig gemacht werden.`,
+            message: `Möchten Sie den Whitelist-Eintrag "${whitelistName}" wirklich löschen? Diese Aktion kann nicht rückgängig gemacht werden.`,
             confirmText: 'Löschen',
             cancelText: 'Abbrechen',
             danger: true,
             onConfirm: async () => {
               try {
                 const response = await fetch(`/secured/whitelist/delete/${whitelistId}`, {
-                  method: 'POST'
+                  method: 'POST',
+                  headers: {
+                    'CSRF-Token': csrfToken
+                  }
                 });
                 
                 if (response.ok) {
@@ -66,6 +76,13 @@ block scripts
                 }
               } catch (err) {
                 console.error('Fehler:', err);
+                alert('Fehler beim Löschen des Whitelist-Eintrags');
+              }
+            }
+          });
+        });
+      });
+    });
                 alert('Fehler beim Löschen des Whitelist-Eintrags');
               }
             }

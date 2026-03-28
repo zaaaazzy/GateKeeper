@@ -1,10 +1,9 @@
-
-
 const express = require('express');
 const router = express.Router();
 const ensureAuth = require('../../middleware/auth');
 const whitelistModel = require('../../models/whitelist');
 const vlanModel = require('../../models/vlan');
+const { formatDatetimeDisplay } = require('../../lib/dateUtils');
 
 router.get('/', ensureAuth, async (req, res) => {
     try {
@@ -12,11 +11,23 @@ router.get('/', ensureAuth, async (req, res) => {
         const vlans = await vlanModel.findAll();
         const userVlan = vlans[0] || null;
         
-        // Lade Whitelists für dieses VLAN
+        // Lade Whitelists für dieses VLAN direkt mit DB-Filter
         let whitelists = [];
         if (userVlan) {
-            const allWhitelists = await whitelistModel.findAll();
-            whitelists = allWhitelists.filter(w => w.vlan_id === userVlan.id);
+            // Admin sieht alle Whitelists im VLAN, normale User nur ihre eigenen
+            if (req.session.user.role === 1) {
+                // Admin: Alle Whitelists im VLAN (user_id = null)
+                whitelists = await whitelistModel.getWhitelistsByVlanAndUser(userVlan.id, null);
+            } else {
+                // Normale User: Nur eigene Whitelists (mit user_id)
+                whitelists = await whitelistModel.getWhitelistsByVlanAndUser(userVlan.id, req.session.user.id);
+            }
+            
+            // Formatiere Datetime-Werte für schöne Anzeige
+            whitelists.forEach(w => {
+                w.start_display = formatDatetimeDisplay(w.start);
+                w.end_display = formatDatetimeDisplay(w.end);
+            });
         }
         
         // Traffic blocked status (aus Session)
@@ -39,12 +50,7 @@ router.get('/', ensureAuth, async (req, res) => {
 
 router.post('/add-whitelist', ensureAuth, async (req, res) => {
     try {
-        console.log('=== Whitelist hinzufügen ===');
-        console.log('Session User:', req.session.user);
-        console.log('Body:', req.body);
-        
-        const { name, url } = req.body;
-        
+        const { name, url, start, end, rythm, unit } = req.body;        
         if (!name || !url) {
             console.log('Fehler: Name oder URL fehlt');
             return res.redirect('/auth/dashboard?error=Name und URL erforderlich');
@@ -75,10 +81,10 @@ router.post('/add-whitelist', ensureAuth, async (req, res) => {
             user_id: dbUser.id,
             name,
             url,
-            start: null,
-            end: null,
-            rythm: null,
-            unit: null,
+            start: start || null,
+            end: end || null,
+            rythm: rythm || null,
+            unit: unit || null,
             vlan_id: userVlan.id
         };
         
@@ -114,8 +120,11 @@ router.get('/edit-whitelist/:id', ensureAuth, async (req, res) => {
             return res.redirect('/auth/dashboard?error=Whitelist-Eintrag nicht gefunden');
         }
         
-        // Prüfen, ob Whitelist dem User gehört
-        if (whitelist.user_id !== req.session.user.id) {
+        // Prüfen, ob Whitelist dem User gehört oder User Admin ist
+        const isAdmin = req.session.user.role === 1;
+        const isOwner = parseInt(whitelist.user_id) === parseInt(req.session.user.id);
+        
+        if (!isOwner && !isAdmin) {
             return res.redirect('/auth/dashboard?error=Keine Berechtigung');
         }
         
@@ -137,11 +146,13 @@ router.post('/edit-whitelist/:id', ensureAuth, async (req, res) => {
         const whitelist = await whitelistModel.findById(req.params.id);
         
         if (!whitelist) {
-            return res.redirect('/auth/dashboard?error=Whitelist-Eintrag nicht gefunden');
+            return res.redirect('/auth/dashboard?error=Whitelist nicht gefunden');
         }
         
-        // Prüfen, ob Whitelist dem User gehört
-        if (whitelist.user_id !== req.session.user.id) {
+        const isAdmin = req.session.user.role === 1;
+        const isOwner = parseInt(whitelist.user_id) === parseInt(req.session.user.id);
+        
+        if (!isOwner && !isAdmin) {
             return res.redirect('/auth/dashboard?error=Keine Berechtigung');
         }
         
@@ -163,14 +174,16 @@ router.post('/edit-whitelist/:id', ensureAuth, async (req, res) => {
 router.post('/delete-whitelist/:id', ensureAuth, async (req, res) => {
     try {
         const whitelist = await whitelistModel.findById(req.params.id);
-        
         if (!whitelist) {
             return res.status(404).json({ error: 'Whitelist-Eintrag nicht gefunden' });
         }
         
-        // Prüfen, ob Whitelist dem User gehört
-        if (whitelist.user_id !== req.session.user.id) {
-            return res.status(403).json({ error: 'Keine Berechtigung' });
+        const isAdmin = req.session.user.role === 1;
+        const isOwner = parseInt(whitelist.user_id) === parseInt(req.session.user.id);
+        
+        if (!isOwner && !isAdmin) {
+            console.log('Berechtigung verweigert: Nicht Besitzer und nicht Admin');
+            return res.status(403).json({ error: 'Keine Berechtigung - Diese Whitelist gehört einem anderen Benutzer' });
         }
         
         await whitelistModel.deleteWhitelist(req.params.id);

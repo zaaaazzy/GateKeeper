@@ -11,6 +11,7 @@ block content
         p.success= success
       
       form.user-edit-form(method='post', action=`/secured/vlan/edit/${vlan.id}`)
+        input(type='hidden', name='_csrf', value=csrfToken)
         .form-row
           label.form-label(for='name') Name
           input.form-input(type='text', name='name', id='name', value=vlan.name, required)

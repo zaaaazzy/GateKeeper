@@ -4,37 +4,81 @@ const whitelistModel = require('../../models/whitelist');
 const userModel = require('../../models/user');
 const vlanModel = require('../../models/vlan');
 const isAdmin = require('../../middleware/isAdmin');
+const ensureAuth = require('../../middleware/auth');
+const { formatDatetimeDisplay, formatDatetimeLocal } = require('../../lib/dateUtils');
 
 router.get('/', isAdmin, async (req, res) => {
   try {
     const whitelists = await whitelistModel.findAll();
-    res.render('whitelist/whitelist_list', { title: 'Whitelist Verwaltung', whitelists });
+    
+    // Formatiere Datetime-Werte für schöne Anzeige
+    whitelists.forEach(w => {
+      w.start_display = formatDatetimeDisplay(w.start);
+      w.end_display = formatDatetimeDisplay(w.end);
+    });
+    
+    res.render('whitelist/whitelist_list', { 
+      title: 'Whitelist Verwaltung', 
+      whitelists,
+      success: req.query.success,
+      error: req.query.error
+    });
   } catch (err) {
     console.error('Fehler beim Laden der Whitelist:', err.message);
     res.status(500).render('error', { message: 'Fehler beim Laden der Whitelist', error: {} });
   }
 });
 
-router.get('/add', isAdmin, async (req, res) => {
+router.get('/add', ensureAuth, async (req, res) => {
   try {
-    const users = await userModel.findAll();
-    const vlans = await vlanModel.findAll();
-    res.render('whitelist/whitelist_add', { title: 'Whitelist hinzufügen', users, vlans });
+    const isAdmin = req.session.user.role === 1;
+    
+    let users = [];
+    let vlans = [];
+    
+    // Admins können User und VLAN auswählen, normale User nicht
+    if (isAdmin) {
+      users = await userModel.findAll();
+      vlans = await vlanModel.findAll();
+    } else {
+      // Für normale User: VLAN automatisch zuweisen
+      vlans = await vlanModel.findAll();
+    }
+    
+    res.render('whitelist/whitelist_add', { 
+      title: 'Whitelist hinzufügen', 
+      user: req.session.user,
+      users, 
+      vlans 
+    });
   } catch (err) {
     console.error('Fehler beim Laden des Formulars:', err.message);
-    res.status(500).render('error', { message: 'Fehler beim Laden des Formulars', error: {} });
+    res.redirect('/auth/dashboard?error=Fehler beim Laden des Formulars');
   }
 });
 
-router.post('/add', isAdmin, async (req, res) => {
+router.post('/add', ensureAuth, async (req, res) => {
   try {
-    const { user_id, name, url, start, end, rythm, unit, vlan_id } = req.body;
+    const isAdmin = req.session.user.role === 1;
+    let { user_id, name, url, start, end, rythm, unit, vlan_id } = req.body;
+    
+    // Normale User: Automatisch ihre eigene User-ID und erstes VLAN verwenden
+    if (!isAdmin) {
+      user_id = req.session.user.id;
+      const vlans = await vlanModel.findAll();
+      vlan_id = vlans[0]?.id;
+      
+      if (!vlan_id) {
+        return res.redirect('/auth/dashboard?error=Kein VLAN verfügbar');
+      }
+    }
     
     if (!user_id || !name || !url || !vlan_id) {
-      const users = await userModel.findAll();
+      const users = isAdmin ? await userModel.findAll() : [];
       const vlans = await vlanModel.findAll();
       return res.status(400).render('whitelist/whitelist_add', { 
-        error: 'User, Name, URL und VLAN erforderlich',
+        error: 'Name, URL und VLAN erforderlich',
+        user: req.session.user,
         users,
         vlans 
       });
@@ -51,24 +95,47 @@ router.post('/add', isAdmin, async (req, res) => {
       vlan_id 
     });
     
-    res.redirect('/secured/whitelist');
+    // Admin zurück zur Whitelist-Liste, User zum Dashboard
+    if (isAdmin) {
+      res.redirect('/secured/whitelist?success=Whitelist erfolgreich hinzugefügt');
+    } else {
+      res.redirect('/auth/dashboard?success=Whitelist erfolgreich hinzugefügt');
+    }
   } catch (err) {
     console.error('Fehler beim Anlegen des Whitelist-Eintrags:', err.message);
-    const users = await userModel.findAll();
+    const isAdmin = req.session.user.role === 1;
+    const users = isAdmin ? await userModel.findAll() : [];
     const vlans = await vlanModel.findAll();
     res.status(500).render('whitelist/whitelist_add', { 
       error: 'Fehler beim Anlegen des Whitelist-Eintrags',
+      user: req.session.user,
       users,
       vlans 
     });
   }
 });
 
-router.get('/edit/:id', isAdmin, async (req, res) => {
+router.get('/edit/:id', ensureAuth, async (req, res) => {
   try {
     const whitelist = await whitelistModel.findById(req.params.id);
     if (!whitelist) {
-      return res.status(404).render('error', { message: 'Whitelist-Eintrag nicht gefunden', error: {} });
+      return res.redirect('/auth/dashboard?error=Whitelist-Eintrag nicht gefunden');
+    }
+    
+    // Prüfen, ob Whitelist dem User gehört oder User Admin ist
+    const isAdmin = req.session.user.role === 1;
+    const isOwner = parseInt(whitelist.user_id) === parseInt(req.session.user.id);
+    
+    if (!isOwner && !isAdmin) {
+      return res.redirect('/auth/dashboard?error=Keine Berechtigung');
+    }
+    
+    // Formatiere Datetime-Werte für datetime-local Input
+    if (whitelist.start) {
+      whitelist.start = formatDatetimeLocal(whitelist.start);
+    }
+    if (whitelist.end) {
+      whitelist.end = formatDatetimeLocal(whitelist.end);
     }
     
     const users = await userModel.findAll();
@@ -78,28 +145,41 @@ router.get('/edit/:id', isAdmin, async (req, res) => {
       title: 'Whitelist bearbeiten', 
       whitelist,
       users,
-      vlans 
+      vlans,
+      user: req.session.user
     });
   } catch (err) {
     console.error('Fehler beim Laden des Whitelist-Eintrags:', err.message);
-    res.status(500).render('error', { message: 'Fehler beim Laden des Whitelist-Eintrags', error: {} });
+    res.redirect('/auth/dashboard?error=Fehler beim Laden des Whitelist-Eintrags');
   }
 });
 
-router.post('/edit/:id', isAdmin, async (req, res) => {
+router.post('/edit/:id', ensureAuth, async (req, res) => {
   try {
     const whitelist = await whitelistModel.findById(req.params.id);
     if (!whitelist) {
-      return res.status(404).render('error', { message: 'Whitelist-Eintrag nicht gefunden', error: {} });
+      return res.redirect('/auth/dashboard?error=Whitelist-Eintrag nicht gefunden');
+    }
+    
+    // Prüfen, ob Whitelist dem User gehört oder User Admin ist
+    const isAdmin = req.session.user.role === 1;
+    const isOwner = parseInt(whitelist.user_id) === parseInt(req.session.user.id);
+    
+    if (!isOwner && !isAdmin) {
+      return res.redirect('/auth/dashboard?error=Keine Berechtigung');
     }
     
     const { user_id, name, url, start, end, rythm, unit, vlan_id } = req.body;
     const updates = {};
     
-    if (user_id) updates.user_id = user_id;
+    // Normale User können nur Name und URL ändern, Admins alles
+    if (isAdmin) {
+      if (user_id) updates.user_id = user_id;
+      if (vlan_id) updates.vlan_id = vlan_id;
+    }
+    
     if (name) updates.name = name.trim();
     if (url) updates.url = url.trim();
-    if (vlan_id) updates.vlan_id = vlan_id;
     
     // Optional fields
     updates.start = start || null;
@@ -109,34 +189,15 @@ router.post('/edit/:id', isAdmin, async (req, res) => {
     
     await whitelistModel.updateWhitelist(req.params.id, updates);
     
-    const updatedWhitelist = await whitelistModel.findById(req.params.id);
-    const users = await userModel.findAll();
-    const vlans = await vlanModel.findAll();
-    
-    res.render('whitelist/whitelist_edit', { 
-      title: 'Whitelist bearbeiten', 
-      whitelist: updatedWhitelist,
-      users,
-      vlans,
-      success: 'Whitelist-Eintrag erfolgreich aktualisiert.' 
-    });
+    res.redirect('/auth/dashboard?success=Whitelist erfolgreich aktualisiert');
   } catch (err) {
     console.error('Fehler beim Aktualisieren des Whitelist-Eintrags:', err.message);
-    const whitelist = await whitelistModel.findById(req.params.id);
-    const users = await userModel.findAll();
-    const vlans = await vlanModel.findAll();
-    
-    res.status(500).render('whitelist/whitelist_edit', { 
-      title: 'Whitelist bearbeiten',
-      whitelist,
-      users,
-      vlans,
-      error: 'Fehler beim Aktualisieren des Whitelist-Eintrags' 
-    });
+    res.redirect('/auth/dashboard?error=Fehler beim Aktualisieren');
   }
 });
 
 router.post('/delete/:id', isAdmin, async (req, res) => {
+    console.log('Anfrage zum Löschen des Whitelist-Eintrags mit ID:', req.params.id);
   try {
     const whitelist = await whitelistModel.findById(req.params.id);
     if (!whitelist) {

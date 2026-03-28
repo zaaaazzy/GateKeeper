@@ -1,9 +1,8 @@
 const express = require('express');
 const router = express.Router();
-const ensureAuth = require('../middleware/auth');
-const isAdmin = require('../middleware/isAdmin');
 const userModel = require('../models/user');
 const { comparePassword } = require('../lib/password');
+const { loginLimiter } = require('../middleware/rateLimiter');
 
 // Login routes (public)
 router.get('/login', (req, res) => {
@@ -13,7 +12,7 @@ router.get('/login', (req, res) => {
     return res.render('login', { title: 'Login' });
 });
 
-router.post('/login', async (req, res) => {
+router.post('/login', loginLimiter, async (req, res) => {
     try {
         const { email, password } = req.body;
         if (!email || !password) return res.status(400).render('login', { error: 'Email und Passwort benötigt' });
@@ -45,11 +44,5 @@ router.get('/logout', (req, res) => {
 });
 
 router.use('/dashboard', require('./secured/dashboard'));
-
-/*
-router.get('/usermanagement/manage', isAdmin, (req, res) => {
-  res.redirect('/secured/user');
-});
-*/
 
 module.exports = router;

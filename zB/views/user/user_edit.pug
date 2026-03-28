@@ -11,6 +11,7 @@ block content
         p.success= success
       
       form.user-edit-form(method='post', action=`/secured/user/edit/${user.id}`)
+        input(type='hidden', name='_csrf', value=csrfToken)
         .form-row
           label.form-label(for='email') Email
           input.form-input(type='email', name='email', id='email', value=user.email, required)

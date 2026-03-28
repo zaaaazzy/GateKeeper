@@ -39,6 +39,8 @@ block content
 
 block scripts
   script.
+    const csrfToken = '#{csrfToken}';
+    
     // Delete-Funktion für Benutzer
     document.addEventListener('DOMContentLoaded', () => {
       const deleteButtons = document.querySelectorAll('[data-delete-user]');
@@ -57,7 +59,10 @@ block scripts
             onConfirm: async () => {
               try {
                 const response = await fetch(`/secured/user/delete/${userId}`, {
-                  method: 'POST'
+                  method: 'POST',
+                  headers: {
+                    'CSRF-Token': csrfToken
+                  }
                 });
                 
                 if (response.ok) {

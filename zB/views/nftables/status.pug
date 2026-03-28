@@ -1,0 +1,179 @@
+extends ../layout
+
+block content
+  .list-container
+    .list-header
+      h1.page-title nftables Konfiguration
+      .actions.nft-actions
+        a.btn.btn-secondary(href='/secured/nftables/preview') Vorschau
+        form.inline-form(method='POST', action='/secured/nftables/apply')
+          input(type='hidden', name='_csrf', value=csrfToken)
+          button.btn.btn-primary(type='submit') Konfiguration anwenden
+        if hasConfig
+          form.inline-form(method='POST', action='/secured/nftables/clear')
+            input(type='hidden', name='_csrf', value=csrfToken)
+            button.btn.btn-danger(type='submit', onclick='return confirm("Wirklich alle nftables-Regeln löschen?")') Löschen
+
+    if successMessage
+      .success= successMessage
+    if errorMessage
+      .error= errorMessage
+
+    if process.platform !== 'linux'
+      .warning
+        strong ⚠️ Hinweis: 
+        | nftables ist nur auf Linux-Systemen verfügbar. Aktuelles System: #{process.platform}
+        br
+        | Die Konfiguration kann generiert werden, aber nicht angewendet werden.
+
+    .info-section
+      h2 Übersicht
+      .info-grid
+        .info-card
+          .info-label Aktive Whitelists
+          .info-value= activeWhitelists.length
+        .info-card
+          .info-label Konfiguration
+          .info-value= hasConfig ? 'Aktiv' : 'Nicht aktiv'
+        .info-card
+          .info-label System
+          .info-value= process.platform === 'linux' ? 'Linux' : process.platform
+
+    .section
+      h2 Aktive Whitelists
+      p.text-muted Folgende Einträge sind derzeit aktiv und werden in die nftables-Konfiguration aufgenommen
+      
+      if activeWhitelists.length === 0
+        .empty-state
+          p Keine aktiven Whitelists vorhanden
+      else
+        .table-wrapper
+          table.whitelist-admin
+            thead
+              tr
+                th ID
+                th User
+                th Name
+                th URL
+                th Start
+                th Ende
+                th VLAN
+            tbody
+              each wl in activeWhitelists
+                tr
+                  td= wl.id
+                  td= wl.user_email
+                  td= wl.name
+                  td
+                    a(href=wl.url, target='_blank')= wl.url
+                  td= wl.start ? new Date(wl.start).toLocaleString('de-DE') : '-'
+                  td= wl.end ? new Date(wl.end).toLocaleString('de-DE') : '-'
+                  td= wl.vlan_name
+
+    if hasConfig
+      .section
+        h2 Aktuelle nftables-Konfiguration
+        pre.code-block= currentConfig
+
+  style.
+    .nft-actions {
+      display: flex;
+      gap: 8px;
+      align-items: center;
+      flex-wrap: wrap;
+    }
+    .inline-form {
+      display: inline-block;
+      margin: 0;
+    }
+    .info-section {
+      margin: 24px 0 32px 0;
+    }
+    .info-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 16px;
+      margin: 0;
+    }
+    .info-card {
+      background: white;
+      padding: 20px;
+      border-radius: 8px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+      border-left: 3px solid #1fa667;
+    }
+    .info-label {
+      font-size: 12px;
+      text-transform: uppercase;
+      color: #666;
+      font-weight: 600;
+      letter-spacing: 0.5px;
+      margin: 0 0 8px 0;
+    }
+    .info-value {
+      font-size: 28px;
+      font-weight: 700;
+      color: #1fa667;
+      margin: 0;
+    }
+    .section {
+      margin: 0 0 32px 0;
+    }
+    .section h2 {
+      font-size: 20px;
+      color: #153f2a;
+      margin: 0 0 8px 0;
+    }
+    .text-muted {
+      color: #666;
+      font-size: 14px;
+      margin: 0 0 16px 0;
+    }
+    .code-block {
+      background: #f5f5f5;
+      padding: 16px;
+      border-radius: 8px;
+      overflow-x: auto;
+      font-family: 'Monaco', 'Courier New', monospace;
+      font-size: 12px;
+      line-height: 1.5;
+      border: 1px solid #ddd;
+      margin: 16px 0 0 0;
+    }
+    .empty-state {
+      text-align: center;
+      padding: 40px;
+      color: #999;
+      background: #fafafa;
+      border-radius: 8px;
+      margin: 16px 0 0 0;
+    }
+    .warning {
+      background: #fff3cd;
+      color: #856404;
+      padding: 16px;
+      border-radius: 8px;
+      margin: 0 0 24px 0;
+      border-left: 4px solid #ffc107;
+    }
+    .warning strong {
+      color: #856404;
+      display: inline-block;
+      margin-right: 4px;
+    }
+    .table-wrapper {
+      margin: 16px 0 0 0;
+    }
+    .btn-danger {
+      background: #dc3545;
+    }
+    .btn-danger:hover {
+      background: #c82333;
+    }
+    .btn-secondary {
+      background: #6c757d;
+      color: white;
+    }
+    .btn-secondary:hover {
+      background: #5a6268;
+    }

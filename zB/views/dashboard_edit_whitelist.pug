@@ -11,6 +11,7 @@ block content
         p.success= success
       
       form.user-edit-form(method='post', action=`/auth/dashboard/edit-whitelist/${whitelist.id}`)
+        input(type='hidden', name='_csrf', value=csrfToken)
         .form-row
           label.form-label(for='name') Name
           input.form-input(type='text', name='name', id='name', value=whitelist.name, required)
