@@ -361,6 +361,73 @@ nftablesLimiter: 10 Anwendungen / 5 Minuten
    - Rolle (Admin/Lehrer)
 4. **Registrieren**
 
+#### 📸 Benutzerverwaltung im Detail
+
+![Benutzerverwaltung](public/images/screenshots/benutzerverwaltung.png)
+
+Die Benutzerverwaltung bietet eine übersichtliche Tabelle mit folgenden Funktionen:
+
+**Spalten:**
+- **ID**: Eindeutige Datenbank-ID des Benutzers
+- **EMAIL**: Login-Email (muss unique sein)
+- **VORNAME**: Vorname des Benutzers
+- **NACHNAME**: Nachname des Benutzers
+- **ROLLE**: 
+  - 🟡 **Admin** (gelbes Badge): Voller Zugriff auf alle Funktionen
+  - 🟢 **Lehrer** (graues Badge): Zugriff nur auf Dashboard und eigene Whitelists
+- **AKTIV**: 
+  - 🟢 **Aktiv** (grünes Badge): User kann sich einloggen
+  - 🔴 **Inaktiv** (rotes Badge): Login gesperrt
+- **AKTIONEN**: 
+  - 🟢 **Bearbeiten** (Telefon-Icon): Email, Name, Rolle, Status ändern
+  - 🔴 **Löschen** (X-Icon): User permanent entfernen (mit Bestätigungs-Modal)
+
+**Funktionen:**
+
+1. **Neuen Benutzer erstellen**
+   - Klick auf grünen **[+]**-Button (oben rechts)
+   - Formular mit Feldern: Email, Passwort, Vorname, Nachname, Rolle
+   - Passwort wird automatisch mit bcrypt gehasht (10 Salt-Rounds)
+   - Email-Validierung (muss unique sein)
+
+2. **Benutzer bearbeiten**
+   - Klick auf grünen **Telefon-Button**
+   - Ändere Email, Namen, Rolle oder Aktiv-Status
+   - Passwort optional ändern (leer lassen = keine Änderung)
+   - CSRF-geschützt
+
+3. **Benutzer löschen**
+   - Klick auf roten **X-Button**
+   - Bestätigungs-Modal: "Möchten Sie diesen Benutzer wirklich löschen?"
+   - **CASCADE DELETE**: Alle Whitelists des Users werden automatisch gelöscht
+   - AJAX-Request mit CSRF-Token
+   - Zeile verschwindet nach erfolgreicher Löschung
+
+4. **Status-Badges**
+   - Rolle wird farbig hervorgehoben:
+     - **Admin**: Gelber Hintergrund (#ffc107)
+     - **Lehrer**: Grauer Hintergrund
+   - Aktiv-Status:
+     - **Aktiv**: Grüner Hintergrund
+     - **Inaktiv**: Roter Hintergrund (nicht im Screenshot sichtbar)
+
+5. **Sicherheit**
+   - Nur Admins haben Zugriff auf diese Seite (`isAdmin` Middleware)
+   - Alle Aktionen CSRF-geschützt
+   - Input-Validierung: Email-Format, required Fields
+   - SQL-Injection-Schutz: Prepared Statements
+
+6. **Responsive Design**
+   - Tabelle scrollbar auf kleinen Bildschirmen
+   - Buttons nebeneinander mit Flex-Layout (8px Gap)
+   - Icons für bessere UX (Font Awesome oder Unicode)
+
+**Technische Details:**
+- **Route**: `/secured/user` (GET für Liste, POST für Aktionen)
+- **Model**: `models/user.js` (CRUD-Operationen)
+- **View**: `views/user/user_list.pug`
+- **CSS**: `.users table` und `.action-buttons` Styles
+
 ### 4️⃣ Whitelist-Eintrag erstellen
 
 **Als Lehrer (eigene Whitelists):**
