@@ -36,7 +36,14 @@ block scripts
     const csrfToken = '#{csrfToken}';
     
     // Delete-Funktion für VLAN
-    document.addEventListener('DOMContentLoaded', () => {
+    function initDeleteButtons() {
+      // Prüfe ob Modal verfügbar ist
+      if (typeof Modal === 'undefined') {
+        console.error('Modal ist nicht verfügbar. Stelle sicher, dass modal.js geladen ist.');
+        alert('Fehler: Modal-System nicht geladen. Bitte Seite neu laden.');
+        return;
+      }
+      
       const deleteButtons = document.querySelectorAll('[data-delete-vlan]');
       
       deleteButtons.forEach(btn => {
@@ -55,7 +62,8 @@ block scripts
                 const response = await fetch(`/secured/vlan/delete/${vlanId}`, {
                   method: 'POST',
                   headers: {
-                    'CSRF-Token': csrfToken
+                    'Content-Type': 'application/json',
+                    'X-CSRF-Token': csrfToken
                   }
                 });
                 
@@ -77,4 +85,11 @@ block scripts
           });
         });
       });
-    });
+    }
+    
+    // Initialisiere entweder sofort oder nach DOMContentLoaded
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', initDeleteButtons);
+    } else {
+      initDeleteButtons();
+    }

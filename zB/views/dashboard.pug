@@ -80,7 +80,8 @@ block scripts
           const response = await fetch('/auth/dashboard/toggle-traffic', {
             method: 'POST',
             headers: {
-              'CSRF-Token': csrfToken
+              'Content-Type': 'application/json',
+              'X-CSRF-Token': csrfToken
             }
           });
           
@@ -101,13 +102,19 @@ block scripts
     }
     
     // Delete-Funktion für Whitelist
-    document.addEventListener('DOMContentLoaded', () => {
+    function initDeleteButtons() {
       const deleteButtons = document.querySelectorAll('[data-delete-whitelist]');
       
       deleteButtons.forEach(btn => {
         btn.addEventListener('click', () => {
           const whitelistId = btn.getAttribute('data-delete-whitelist');
           const whitelistName = btn.getAttribute('data-whitelist-name');
+          
+          if (typeof Modal === 'undefined') {
+            console.error('Modal ist nicht verfügbar');
+            alert('Fehler: Modal-System nicht geladen');
+            return;
+          }
           
           Modal.open({
             title: 'Whitelist-Eintrag löschen',
@@ -120,7 +127,8 @@ block scripts
                 const response = await fetch(`/auth/dashboard/delete-whitelist/${whitelistId}`, {
                   method: 'POST',
                   headers: {
-                    'CSRF-Token': csrfToken
+                    'Content-Type': 'application/json',
+                    'X-CSRF-Token': csrfToken
                   }
                 });
                 
@@ -141,4 +149,11 @@ block scripts
           });
         });
       });
-    });
+    }
+    
+    // Initialisiere nach DOM-Load oder sofort wenn bereits geladen
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', initDeleteButtons);
+    } else {
+      initDeleteButtons();
+    }

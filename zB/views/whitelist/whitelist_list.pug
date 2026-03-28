@@ -42,7 +42,15 @@ block scripts
   script.
     const csrfToken = '#{csrfToken}';
     
-    document.addEventListener('DOMContentLoaded', () => {
+    // Delete-Funktion für Whitelist-Einträge
+    function initDeleteButtons() {
+      // Prüfe ob Modal verfügbar ist
+      if (typeof Modal === 'undefined') {
+        console.error('Modal ist nicht verfügbar. Stelle sicher, dass modal.js geladen ist.');
+        alert('Fehler: Modal-System nicht geladen. Bitte Seite neu laden.');
+        return;
+      }
+      
       const deleteButtons = document.querySelectorAll('[data-delete-whitelist]');
       
       deleteButtons.forEach(btn => {
@@ -61,7 +69,8 @@ block scripts
                 const response = await fetch(`/secured/whitelist/delete/${whitelistId}`, {
                   method: 'POST',
                   headers: {
-                    'CSRF-Token': csrfToken
+                    'Content-Type': 'application/json',
+                    'X-CSRF-Token': csrfToken
                   }
                 });
                 
@@ -82,11 +91,11 @@ block scripts
           });
         });
       });
-    });
-                alert('Fehler beim Löschen des Whitelist-Eintrags');
-              }
-            }
-          });
-        });
-      });
-    });
+    }
+    
+    // Initialisiere entweder sofort oder nach DOMContentLoaded
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', initDeleteButtons);
+    } else {
+      initDeleteButtons();
+    }
